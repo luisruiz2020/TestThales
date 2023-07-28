@@ -1,0 +1,118 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model ResponseEmployees
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#btnInvokeMethod').on('click', function () {
+                $('#spinner').removeClass('d-none');
+                var url = $(this).data('url');
+                var inputValue = $('#employeeId').val();
+                var dataToSend = {
+                    employeeId: inputValue
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: dataToSend,
+                    success: function (result) {
+                        debugger;
+                        if (result.status == "200") {
+                            $('#message').hide();
+                            updateDataContainer(result.data);
+                        } else {
+                            var tableBody = $('#dataTable tbody');
+                            tableBody.empty();
+                            $('#message').text(result.message);
+                            $('#message').show();
+                        }
+                        $('#spinner').addClass('d-none');
+                    },
+                    error: function (error) {
+                        console.error('Error:', error);
+                        $('#spinner').addClass('d-none');
+                    }
+                });
+            });
+        });
+
+        function updateDataContainer(data) {
+            var tableBody = $('#dataTable tbody');
+            tableBody.empty();
+
+            $.each(data, function (index, item) {
+                var row = $('<tr></tr>');
+                row.append('<td>' + item.id + '</td>');
+                row.append('<td>' + item.employee_Name + '</td>');
+                row.append('<td>' + item.employee_salary + '</td>');
+                row.append('<td>' + item.employee_anual_salary + '</td>');
+                row.append('<td>' + item.employee_age + '</td>');
+                row.append('<td>' + item.profile_image + '</td>');
+                tableBody.append(row);
+            });
+        }
+    </script>
+}
+
+<form method="post" asp-action="SearchEmployee" asp-route-param1="valor1">
+
+    <div class="input-group">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon1">Id</span>
+        </div>
+        <input type="number" min="0" id="employeeId" name="employeeId" class="form-control" placeholder="Employee Id" />
+        <div class="input-group-append">
+            <button type="button" class="btn btn-primary" id="btnInvokeMethod" data-url="@Url.Action("SearchEmployee", "Home")">Search</button>
+        </div>
+    </div>
+    <div class="row align-items-center">
+        <div class="col-7">
+            @if (Model.status != "200")
+            {
+                <div class="alert alert-danger" role="alert">
+                    @Model.message
+                </div>
+            }
+
+            <label class="alert alert-danger" role="alert" style="display: none;" id="message"></label>
+        </div>
+        <div id="spinner" class="d-none col-3">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only"></span>
+            </div>
+        </div>
+    </div>
+
+    <table id="dataTable" class="table table-striped">
+        <thead class="thead-blue">
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Name</th>
+                <th scope="col">Salary</th>
+                <th scope="col">Anual Salary</th>
+                <th scope="col">Age</th>
+                <th scope="col">Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.data != null)
+            {
+                @foreach (var employee in Model.data)
+                {
+                    <tr>
+                        <th scope="row">@employee.id</th>
+                        <td>@employee.employee_Name</td>
+                        <td>@employee.employee_salary</td>
+                        <td>@employee.employee_anual_salary</td>
+                        <td>@employee.employee_age</td>
+                        <td>@employee.profile_image</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</form>
